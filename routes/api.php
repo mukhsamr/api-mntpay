@@ -32,7 +32,7 @@ Route::middleware('auth:sanctum')->controller(SellerController::class)->prefix('
 // Admin
 Route::middleware('auth:sanctum')->controller(AdminController::class)->prefix('admin')->group(function () {
     Route::get('/', 'index');
-    Route::get('transaction-lis', 'transactionList');
+    Route::get('transaction-list', 'transactionList');
     Route::get('transaction-simple-list', 'transactionSimpleList');
     Route::get('withdraw-list', 'withdrawList');
     Route::get('topup-list', 'topupList');
