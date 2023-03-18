@@ -34,7 +34,7 @@ class BuyerController extends Controller
         ]);
     }
 
-    public function transactionSimpleList()
+    public function transactionList(?string $limit = null)
     {
         /** @var User $user **/
         $user = Auth::user();
@@ -44,7 +44,7 @@ class BuyerController extends Controller
                 ->buyerTransactions()
                 ->orderByDesc('id')
                 ->withPenerima()
-                ->limit(6)
+                ->limit($limit)
                 ->get()
                 ->each(
                     fn ($val) => $val->nominal = number_format($val->nominal)
@@ -52,16 +52,33 @@ class BuyerController extends Controller
         );
     }
 
-    public function transactionList()
+    public function topupList()
     {
         /** @var User $user **/
         $user = Auth::user();
 
         return response()->json(
             $user
-                ->buyerTransactions()
+                ->buyerTopups()
                 ->orderByDesc('id')
-                ->withPenerima()
+                ->withPengirim()
+                ->get()
+                ->each(
+                    fn ($val) => $val->nominal = number_format($val->nominal)
+                )
+        );
+    }
+
+    public function withdrawList()
+    {
+        /** @var User $user **/
+        $user = Auth::user();
+
+        return response()->json(
+            $user
+                ->withdraws()
+                ->orderByDesc('id')
+                ->withPengirim()
                 ->get()
                 ->each(
                     fn ($val) => $val->nominal = number_format($val->nominal)

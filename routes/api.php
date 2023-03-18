@@ -14,8 +14,9 @@ Route::post('auth', [AuthController::class, 'authenticate']);
 // Buyer
 Route::middleware('auth:sanctum')->controller(BuyerController::class)->prefix('buyer')->group(function () {
     Route::get('/', 'index');
-    Route::get('transaction-list', 'transactionList');
-    Route::get('transaction-simple-list', 'transactionSimpleList');
+    Route::get('transaction-list/{limit?}', 'transactionList');
+    Route::get('topup-list', 'topupList');
+    Route::get('withdraw-list', 'withdrawList');
     Route::post('check-pin', 'checkPin');
     Route::post('pay', 'store');
 });
@@ -32,13 +33,13 @@ Route::middleware('auth:sanctum')->controller(SellerController::class)->prefix('
 // Admin
 Route::middleware('auth:sanctum')->controller(AdminController::class)->prefix('admin')->group(function () {
     Route::get('/', 'index');
-    Route::get('transaction-list', 'transactionList');
-    Route::get('transaction-simple-list', 'transactionSimpleList');
+    Route::get('transaction-list/{limit?}', 'transactionList');
     Route::get('withdraw-list', 'withdrawList');
     Route::get('topup-list', 'topupList');
     Route::get('account-list/{tipe?}', 'accountList');
 
     Route::post('topup', 'storeTopup');
+    Route::post('withdraw', 'storeWithdraw');
 
     Route::post('user-add', 'storeUser');
     Route::patch('user-edit', 'updateUser');

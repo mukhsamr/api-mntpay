@@ -25,26 +25,14 @@ class AdminController extends Controller
             'total_withdraw' => number_format($withdraw),
         ]);
     }
-    public function transactionSimpleList()
-    {
-        return response()->json(
-            Transaction::orderByDesc('id')
-                ->withPengirim()
-                ->withPenerima()
-                ->limit(6)
-                ->get()
-                ->each(
-                    fn ($val) => $val->nominal = number_format($val->nominal)
-                )
-        );
-    }
 
-    public function transactionList()
+    public function transactionList(?string $limit = null)
     {
         return response()->json(
             Transaction::orderByDesc('id')
                 ->withPengirim()
                 ->withPenerima()
+                ->limit($limit)
                 ->get()
                 ->each(
                     fn ($val) => $val->nominal = number_format($val->nominal)
@@ -131,6 +119,47 @@ class AdminController extends Controller
     }
 
 
+    // Withdraw
+    public function storeWithdraw(Request $request)
+    {
+        if (!$this->getSaldoSeller($request->seller_id, $request->nominal)) {
+            return response()->json([
+                'error' => 'Saldo tidak cukup',
+            ], 403);
+        }
+
+        $user = Auth::user();
+
+        $nominal = str_replace('.', '', $request->nominal);
+        $nota = 'WD' . $request->admin_id . substr(time(), 4, 6);
+
+        $data = [
+            'nota' => $nota,
+            'pengirim' => $user->id,
+            'penerima' => $request->seller_id,
+            'nominal' => $nominal
+        ];
+
+        try {
+            Withdraw::create($data);
+
+            $seller = User::find($request->seller_id);
+            return response()->json([
+                'nota' => $nota,
+                'seller' => $seller->nama,
+                'nominal' => $nominal
+            ]);
+        } catch (\Throwable $th) {
+
+            Log::error($th->getMessage());
+
+            return response()->json([
+                'error' => $th->getMessage()
+            ]);
+        }
+    }
+
+
     // User
     public function storeUser(Request $request)
     {
@@ -195,5 +224,16 @@ class AdminController extends Controller
                 'error' => $th->getMessage()
             ], 500);
         }
+    }
+
+
+    // ========
+    public function getSaldoSeller($seller_id, $nominal)
+    {
+        $user = User::withSum('sellerTransactions as masuk', 'nominal')
+            ->withSum('sellerWithdraws as withdraw', 'nominal')
+            ->find($seller_id);
+
+        return $user->masuk - $nominal - $user->withdraw >= 0;
     }
 }

@@ -20,11 +20,24 @@ class AuthController extends Controller
             $user = Auth::loginUsingId($find->id);
 
             $user->token = $user->createToken('token')->plainTextToken;
+            $user->alias = $this->alias($user->nama);
+
             return response()->json($user);
         }
 
         return response()->json([
             'message' => 'Invalid credential.',
         ], 401);
+    }
+
+    private function alias(string $nama): string
+    {
+        $collection = collect(explode(' ', $nama))->take(2);
+
+        $collection = $collection->map(function ($word) {
+            return substr($word, 0, 1);
+        });
+
+        return $collection->implode('');
     }
 }
